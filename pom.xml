@@ -11,7 +11,7 @@
     <name>Validating String Parameter Plugin</name>
     <version>2.5-SNAPSHOT</version>
     <url>http://wiki.jenkins-ci.org/display/JENKINS/Validating+String+Parameter+Plugin</url>
-
+ 
     <properties>
         <java.level>8</java.level>
     </properties>
@@ -22,7 +22,7 @@
         </developerConnection>
         <url>http://github.com/jenkinsci/validating-string-parameter-pluginn</url>
         <tag>HEAD</tag>
-    </scm>
+    </scm>    
 
     <dependencies>
         <dependency>
@@ -32,7 +32,7 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
+    
     <developers>
         <developer>
             <id>petehayes</id>
@@ -40,7 +40,13 @@
             <email>petehayes@gmail.com</email>
             <timezone>-6</timezone>
         </developer>
-    </developers>
+        <developer>
+            <id>krzysztofreczek</id>
+            <name>Krzysztof Reczek</name>
+            <email>reczek.krzysztof@gmail.com</email>
+            <timezone>+1</timezone>
+        </developer>
+    </developers>   
 
     <repositories>
         <repository>

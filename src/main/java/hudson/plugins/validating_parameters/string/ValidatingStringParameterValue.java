@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package hudson.plugins.validating_string_parameter;
+package hudson.plugins.validating_parameters.string;
 
 import hudson.AbortException;
 import hudson.Launcher;
