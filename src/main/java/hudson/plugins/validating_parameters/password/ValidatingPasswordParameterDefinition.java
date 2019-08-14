@@ -23,16 +23,17 @@
  */
 package hudson.plugins.validating_parameters.password;
 
+import com.google.common.base.Strings;
 import hudson.Extension;
 import hudson.model.Failure;
 import hudson.model.ParameterValue;
 import hudson.model.PasswordParameterDefinition;
 import hudson.plugins.validating_parameters.common.ValidatedParameterDescriptor;
 import hudson.plugins.validating_parameters.utils.JsEscapingUtils;
-import jenkins.model.Jenkins;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 
+import javax.annotation.Nonnull;
 import java.util.regex.Pattern;
 
 /**
@@ -85,21 +86,31 @@ public class ValidatingPasswordParameterDefinition extends PasswordParameterDefi
         return JsEscapingUtils.jsEscape(failedValidationMessage);
     }
 
-    public String getRootUrl() {
-        return Jenkins.getInstance().getRootUrl();
+    @Override
+    public ValidatingPasswordParameterValue getDefaultParameterValue() {
+        return new ValidatingPasswordParameterValue(getName(), defaultValue, getRegex(), getDescription());
     }
 
     @Override
-    public ValidatingPasswordParameterValue getDefaultParameterValue() {
-        ValidatingPasswordParameterValue v =
-                new ValidatingPasswordParameterValue(getName(), defaultValue, getRegex(), getDescription());
-        return v;
+    public ParameterValue createValue(String value) {
+        if (Strings.isNullOrEmpty(value)) {
+            return new ValidatingPasswordParameterValue(getName(), defaultValue, regex, getDescription());
+        }
+
+        ValidatingPasswordParameterValue passwordValue =
+                new ValidatingPasswordParameterValue(getName(), value, regex, getDescription());
+        if (!Pattern.matches(regex, passwordValue.getValue().getPlainText())) {
+            throw new Failure(failedValidationMessage);
+        }
+
+        return passwordValue;
     }
 
     @Extension
     @Symbol("validatingPassword")
     public static class DescriptorImpl extends ValidatedParameterDescriptor {
 
+        @Nonnull
         @Override
         public String getDisplayName() {
             return "Validating Password Parameter";
@@ -109,18 +120,5 @@ public class ValidatingPasswordParameterDefinition extends PasswordParameterDefi
         public String getHelpFile() {
             return "/plugin/validating-parameters/help-password.html";
         }
-    }
-
-    @Override
-    public ParameterValue createValue(String value) {
-        ValidatingPasswordParameterValue passwordValue = new ValidatingPasswordParameterValue(value, regex);
-
-        if (!Pattern.matches(regex, passwordValue.getValue().getPlainText())) {
-            throw new Failure("Invalid value for parameter [" + getName() + "] specified");
-        }
-
-        passwordValue.setDescription(getDescription());
-        passwordValue.setRegex(regex);
-        return passwordValue;
     }
 }

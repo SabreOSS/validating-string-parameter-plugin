@@ -44,10 +44,10 @@ public final class JsEscapingUtils {
     }
 
     public static String jsEscape(String input) {
-        String res = input;
+        String output = input;
         for (Map.Entry<String, String> entry : REPLACEMENTS.entrySet()) {
-            res = res.replace(entry.getKey(), entry.getValue());
+            output = output.replace(entry.getKey(), entry.getValue());
         }
-        return res;
+        return output;
     }
 }

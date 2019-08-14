@@ -29,12 +29,12 @@ import hudson.model.ParameterDefinition;
 import hudson.model.ParameterValue;
 import hudson.plugins.validating_parameters.common.ValidatedParameterDescriptor;
 import hudson.plugins.validating_parameters.utils.JsEscapingUtils;
-import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
+import javax.annotation.Nonnull;
 import java.util.regex.Pattern;
 
 /**
@@ -87,39 +87,18 @@ public class ValidatingStringParameterDefinition extends ParameterDefinition {
         return JsEscapingUtils.jsEscape(failedValidationMessage);
     }
 
-    public String getRootUrl() {
-        return Jenkins.getInstance().getRootUrl();
-    }
-
     @Override
     public ValidatingStringParameterValue getDefaultParameterValue() {
-        ValidatingStringParameterValue v =
-                new ValidatingStringParameterValue(getName(), defaultValue, getRegex(), getDescription());
-        return v;
-    }
-
-    @Extension
-    @Symbol("validatingString")
-    public static class DescriptorImpl extends ValidatedParameterDescriptor {
-
-        @Override
-        public String getDisplayName() {
-            return "Validating String Parameter";
-        }
-
-        @Override
-        public String getHelpFile() {
-            return "/plugin/validating-parameters/help-string.html";
-        }
+        return new ValidatingStringParameterValue(getName(), defaultValue, getRegex(), getDescription());
     }
 
     @Override
     public ParameterValue createValue(StaplerRequest req, JSONObject jo) {
         ValidatingStringParameterValue value = req.bindJSON(ValidatingStringParameterValue.class, jo);
-        String req_value = value.getValue();
-        
-        if (!Pattern.matches(regex, req_value)) {
-            throw new Failure("Invalid value for parameter [" + getName() + "] specified: " + req_value);
+        String reqValue = value.getValue();
+
+        if (!Pattern.matches(regex, reqValue)) {
+            throw new Failure(failedValidationMessage);
         }
         
         value.setDescription(getDescription());
@@ -129,15 +108,32 @@ public class ValidatingStringParameterDefinition extends ParameterDefinition {
 
     @Override
     public ParameterValue createValue(StaplerRequest req) {
-        String[] value = req.getParameterValues(getName());
+        String[] values = req.getParameterValues(getName());
         
-        if (value == null || value.length < 1) {
+        if (values == null || values.length < 1) {
             return getDefaultParameterValue();
         } else {
-            if (!Pattern.matches(regex, value[0])) {
-                throw new Failure("Invalid value for parameter [" + getName() + "] specified: " + value[0]);
+            String reqValue = values[0];
+            if (!Pattern.matches(regex, reqValue)) {
+                throw new Failure(failedValidationMessage);
             }
-            return new ValidatingStringParameterValue(getName(), value[0], regex, getDescription());
+            return new ValidatingStringParameterValue(getName(), reqValue, regex, getDescription());
+        }
+    }
+
+    @Extension
+    @Symbol("validatingString")
+    public static class DescriptorImpl extends ValidatedParameterDescriptor {
+
+        @Nonnull
+        @Override
+        public String getDisplayName() {
+            return "Validating String Parameter";
+        }
+
+        @Override
+        public String getHelpFile() {
+            return "/plugin/validating-parameters/help-string.html";
         }
     }
 }

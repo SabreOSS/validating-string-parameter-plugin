@@ -32,11 +32,10 @@ import hudson.tasks.BuildWrapper;
 import java.io.IOException;
 import java.util.regex.Pattern;
 
-import hudson.util.Secret;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
- * {@link ParameterValue} created from {@link ValidatingPasswordParameterDefinition}.
+ * {@link PasswordParameterValue} created from {@link ValidatingPasswordParameterDefinition}.
  *
  * @author Krzysztof Reczek
  * @since 2.5
@@ -45,13 +44,13 @@ public class ValidatingPasswordParameterValue extends PasswordParameterValue {
     private String regex;
 
     @DataBoundConstructor
-    public ValidatingPasswordParameterValue(String name, String value) {
-        this(name, value, null, null);
-    }
-
     public ValidatingPasswordParameterValue(String name, String value, String regex, String description) {
         super(name, value, description);
         this.regex = regex;
+    }
+
+    public ValidatingPasswordParameterValue(String name, String value) {
+        this(name, value, null, null);
     }
 
     public String getRegex() {
@@ -62,18 +61,15 @@ public class ValidatingPasswordParameterValue extends PasswordParameterValue {
         this.regex = regex;
     }
 
-    public Secret getValue() {
-        return super.getValue();
-    }
-
     @Override
     public BuildWrapper createBuildWrapper(AbstractBuild<?, ?> build) {
         if (!Pattern.matches(regex, getValue().getPlainText())) {
             // abort the build within BuildWrapper
             return new BuildWrapper() {
                 @Override
-                public Environment setUp(AbstractBuild build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
-                    throw new AbortException("Invalid value for parameter [" + getName() + "] specified: " + getValue());
+                public Environment setUp(AbstractBuild b, Launcher l, BuildListener bl) throws IOException {
+                    String message = String.format("Invalid value for parameter [%s] specified", getName());
+                    throw new AbortException(message);
                 }
             };
         } else {

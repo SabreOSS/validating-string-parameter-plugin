@@ -34,7 +34,7 @@ import java.util.regex.Pattern;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
- * {@link ParameterValue} created from {@link ValidatingStringParameterDefinition}.
+ * {@link StringParameterValue} created from {@link ValidatingStringParameterDefinition}.
  *
  * @author Peter Hayes
  * @since 1.0
@@ -70,8 +70,9 @@ public class ValidatingStringParameterValue extends StringParameterValue {
             // abort the build within BuildWrapper
             return new BuildWrapper() {
                 @Override
-                public Environment setUp(AbstractBuild build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
-                    throw new AbortException("Invalid value for parameter [" + getName() + "] specified: " + value);
+                public Environment setUp(AbstractBuild b, Launcher l, BuildListener bl) throws IOException {
+                    String message = String.format("Invalid value for parameter [%s] specified: %s", getName(), value);
+                    throw new AbortException(message);
                 }
             };
         } else {
@@ -100,13 +101,10 @@ public class ValidatingStringParameterValue extends StringParameterValue {
         }
         ValidatingStringParameterValue other = (ValidatingStringParameterValue) obj;
         if (value == null) {
-            if (other.value != null) {
-                return false;
-            }
-        } else if (!value.equals(other.value)) {
-            return false;
+            return other.value == null;
+        } else {
+            return value.equals(other.value);
         }
-        return true;
     }
 
     @Override

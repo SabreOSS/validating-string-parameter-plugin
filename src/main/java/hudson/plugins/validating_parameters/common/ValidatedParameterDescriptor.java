@@ -35,31 +35,36 @@ public abstract class ValidatedParameterDescriptor extends ParameterDefinition.P
     /**
      * Check the regular expression entered by the user
      */
-    public FormValidation doCheckRegex(@QueryParameter final String value) {
+    public FormValidation doCheckRegex(
+            @QueryParameter final String value) {
         try {
             Pattern.compile(value);
             return FormValidation.ok();
         } catch (PatternSyntaxException pse) {
-            return FormValidation.error("Invalid regular expression: " + pse.getDescription());
+            String message = String.format("Invalid regular expression: %s", pse.getDescription());
+            return FormValidation.error(message);
         }
     }
 
     /**
      * Called to validate the passed user entered value against the configured regular expression.
      */
-    public FormValidation doValidate(@QueryParameter("regex") String regex,
-                                     @QueryParameter("failedValidationMessage") final String failedValidationMessage,
-                                     @QueryParameter("value") final String value) {
+    public FormValidation doValidate(
+            @QueryParameter("regex") String regex,
+            @QueryParameter("failedValidationMessage") final String failedValidationMessage,
+            @QueryParameter("value") final String value) {
         try {
             if (Pattern.matches(regex, value)) {
                 return FormValidation.ok();
             } else {
-                return failedValidationMessage == null || "".equals(failedValidationMessage)
-                        ? FormValidation.error("Value entered does not match regular expression: " + regex)
-                        : FormValidation.error(failedValidationMessage);
+                String message = failedValidationMessage == null || "".equals(failedValidationMessage)
+                        ? String.format("Value entered does not match regular expression: %s", regex)
+                        : failedValidationMessage;
+                return FormValidation.error(message);
             }
         } catch (PatternSyntaxException pse) {
-            return FormValidation.error("Invalid regular expression [" + regex + "]: " + pse.getDescription());
+            String message = String.format("Invalid regular expression [%s]: %s", regex, pse.getDescription());
+            return FormValidation.error(message);
         }
     }
 }
