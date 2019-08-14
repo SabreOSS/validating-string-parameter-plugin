@@ -133,7 +133,7 @@ public class ValidatingStringParameterDefinition extends ParameterDefinition {
 
         @Override
         public String getHelpFile() {
-            return "/plugin/validating-parameters/help-string.html";
+            return "/plugin/validating-string-parameter/help-string.html";
         }
     }
 }

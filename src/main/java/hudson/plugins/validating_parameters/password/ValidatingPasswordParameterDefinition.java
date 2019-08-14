@@ -118,7 +118,7 @@ public class ValidatingPasswordParameterDefinition extends PasswordParameterDefi
 
         @Override
         public String getHelpFile() {
-            return "/plugin/validating-parameters/help-password.html";
+            return "/plugin/validating-string-parameter/help-password.html";
         }
     }
 }
