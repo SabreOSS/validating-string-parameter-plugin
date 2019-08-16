@@ -4,9 +4,11 @@ import hudson.model.Failure;
 import hudson.model.ParameterValue;
 import hudson.plugins.validating_parameters.utils.JsEscapingUtils;
 import hudson.util.Secret;
+import net.sf.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.kohsuke.stapler.StaplerRequest;
 import org.mockito.BDDMockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -101,6 +103,124 @@ public class ValidatingPasswordParameterDefinitionTest {
 
         // then
         assertThatThrownBy(() -> d.createValue(invalidInput))
+                .isInstanceOf(Failure.class)
+                .hasMessage(DEF_MESSAGE);
+    }
+
+    @Test
+    public void shouldCreateValueFromStaplerRequestAndJSONWithRegexMatchingString() {
+        // given
+        String inputValue = "val";
+        mockSecretFor(inputValue);
+
+        ValidatingPasswordParameterValue inputParameterValue =
+                new ValidatingPasswordParameterValue(DEF_NAME, inputValue);
+        JSONObject json = new JSONObject();
+
+        StaplerRequest req = mock(StaplerRequest.class);
+        when(req.bindJSON(ValidatingPasswordParameterValue.class, json))
+                .thenReturn(inputParameterValue);
+
+        // when
+        ValidatingPasswordParameterDefinition d =
+                new ValidatingPasswordParameterDefinition(
+                        DEF_NAME, DEF_DEFAULT_VALUE, DEF_REGEX, DEF_MESSAGE, DEF_DESCRIPTION);
+        ParameterValue value = d.createValue(req, json);
+
+        // then
+        assertThat(value).isNotNull();
+        assertThat(value).isInstanceOf(ValidatingPasswordParameterValue.class);
+
+        ValidatingPasswordParameterValue specificValue = (ValidatingPasswordParameterValue)value;
+        assertThat(specificValue.getValue().getPlainText()).isEqualTo(inputValue);
+        assertThat(specificValue.getName()).isEqualTo(DEF_NAME);
+        assertThat(specificValue.getDescription()).isEqualTo(DEF_DESCRIPTION);
+        assertThat(specificValue.getRegex()).isEqualTo(DEF_REGEX);
+    }
+
+    @Test
+    public void shouldCreateValueFromStaplerRequestAndJSONWithDefaultString() {
+        // given
+        String defaultPlaceholderValue = "<DEFAULT>";
+        mockSecretFor(defaultPlaceholderValue);
+
+        ValidatingPasswordParameterValue inputParameterValue =
+                new ValidatingPasswordParameterValue(DEF_NAME, defaultPlaceholderValue);
+        JSONObject json = new JSONObject();
+
+        StaplerRequest req = mock(StaplerRequest.class);
+        when(req.bindJSON(ValidatingPasswordParameterValue.class, json))
+                .thenReturn(inputParameterValue);
+
+        // when
+        ValidatingPasswordParameterDefinition d =
+                new ValidatingPasswordParameterDefinition(
+                        DEF_NAME, DEF_DEFAULT_VALUE, DEF_REGEX, DEF_MESSAGE, DEF_DESCRIPTION);
+        ParameterValue value = d.createValue(req, json);
+
+        // then
+        assertThat(value).isNotNull();
+        assertThat(value).isInstanceOf(ValidatingPasswordParameterValue.class);
+
+        ValidatingPasswordParameterValue specificValue = (ValidatingPasswordParameterValue)value;
+        assertThat(specificValue.getValue().getPlainText()).isEqualTo(DEF_DEFAULT_VALUE);
+        assertThat(specificValue.getName()).isEqualTo(DEF_NAME);
+        assertThat(specificValue.getDescription()).isEqualTo(DEF_DESCRIPTION);
+        assertThat(specificValue.getRegex()).isEqualTo(DEF_REGEX);
+    }
+
+    @Test
+    public void shouldCreateValueFromStaplerRequestAndJSONWithBlankString() {
+        // given
+        String blankInputValue = "";
+        mockSecretFor(blankInputValue);
+
+        ValidatingPasswordParameterValue inputParameterValue =
+                new ValidatingPasswordParameterValue(DEF_NAME, blankInputValue);
+        JSONObject json = new JSONObject();
+
+        StaplerRequest req = mock(StaplerRequest.class);
+        when(req.bindJSON(ValidatingPasswordParameterValue.class, json))
+                .thenReturn(inputParameterValue);
+
+        // when
+        ValidatingPasswordParameterDefinition d =
+                new ValidatingPasswordParameterDefinition(
+                        DEF_NAME, DEF_DEFAULT_VALUE, DEF_REGEX, DEF_MESSAGE, DEF_DESCRIPTION);
+        ParameterValue value = d.createValue(req, json);
+
+        // then
+        assertThat(value).isNotNull();
+        assertThat(value).isInstanceOf(ValidatingPasswordParameterValue.class);
+
+        ValidatingPasswordParameterValue specificValue = (ValidatingPasswordParameterValue)value;
+        assertThat(specificValue.getValue().getPlainText()).isEqualTo(DEF_DEFAULT_VALUE);
+        assertThat(specificValue.getName()).isEqualTo(DEF_NAME);
+        assertThat(specificValue.getDescription()).isEqualTo(DEF_DESCRIPTION);
+        assertThat(specificValue.getRegex()).isEqualTo(DEF_REGEX);
+    }
+
+    @Test
+    public void shouldThrowExceptionForStaplerRequestAndJSONWithRegexMismatchingString() {
+        // given
+        String invalidInputValue = "000";
+        mockSecretFor(invalidInputValue);
+
+        ValidatingPasswordParameterValue inputParameterValue =
+                new ValidatingPasswordParameterValue(DEF_NAME, invalidInputValue);
+        JSONObject json = new JSONObject();
+
+        StaplerRequest req = mock(StaplerRequest.class);
+        when(req.bindJSON(ValidatingPasswordParameterValue.class, json))
+                .thenReturn(inputParameterValue);
+
+        // when
+        ValidatingPasswordParameterDefinition d =
+                new ValidatingPasswordParameterDefinition(
+                        DEF_NAME, DEF_DEFAULT_VALUE, DEF_REGEX, DEF_MESSAGE, DEF_DESCRIPTION);
+
+        // then
+        assertThatThrownBy(() -> d.createValue(req, json))
                 .isInstanceOf(Failure.class)
                 .hasMessage(DEF_MESSAGE);
     }

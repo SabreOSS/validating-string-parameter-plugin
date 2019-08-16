@@ -131,6 +131,60 @@ public class ValidatingStringParameterDefinitionTest {
     }
 
     @Test
+    public void shouldCreateValueFromStaplerRequestAndJSONWithNoString() {
+        // given
+        ValidatingStringParameterValue inputParameterValue = new ValidatingStringParameterValue(DEF_NAME, null);
+        JSONObject json = new JSONObject();
+
+        StaplerRequest req = mock(StaplerRequest.class);
+        when(req.bindJSON(ValidatingStringParameterValue.class, json))
+                .thenReturn(inputParameterValue);
+
+        // when
+        ValidatingStringParameterDefinition d =
+                new ValidatingStringParameterDefinition(
+                        DEF_NAME, DEF_DEFAULT_VALUE, DEF_REGEX, DEF_MESSAGE, DEF_DESCRIPTION);
+        ParameterValue value = d.createValue(req, json);
+
+        // then
+        assertThat(value).isNotNull();
+        assertThat(value).isInstanceOf(ValidatingStringParameterValue.class);
+
+        ValidatingStringParameterValue specificValue = (ValidatingStringParameterValue)value;
+        assertThat(specificValue.getValue()).isEqualTo(DEF_DEFAULT_VALUE);
+        assertThat(specificValue.getName()).isEqualTo(DEF_NAME);
+        assertThat(specificValue.getDescription()).isEqualTo(DEF_DESCRIPTION);
+        assertThat(specificValue.getRegex()).isEqualTo(DEF_REGEX);
+    }
+
+    @Test
+    public void shouldCreateValueFromStaplerRequestAndJSONWithBlankString() {
+        // given
+        ValidatingStringParameterValue inputParameterValue = new ValidatingStringParameterValue(DEF_NAME, "");
+        JSONObject json = new JSONObject();
+
+        StaplerRequest req = mock(StaplerRequest.class);
+        when(req.bindJSON(ValidatingStringParameterValue.class, json))
+                .thenReturn(inputParameterValue);
+
+        // when
+        ValidatingStringParameterDefinition d =
+                new ValidatingStringParameterDefinition(
+                        DEF_NAME, DEF_DEFAULT_VALUE, DEF_REGEX, DEF_MESSAGE, DEF_DESCRIPTION);
+        ParameterValue value = d.createValue(req, json);
+
+        // then
+        assertThat(value).isNotNull();
+        assertThat(value).isInstanceOf(ValidatingStringParameterValue.class);
+
+        ValidatingStringParameterValue specificValue = (ValidatingStringParameterValue)value;
+        assertThat(specificValue.getValue()).isEqualTo(DEF_DEFAULT_VALUE);
+        assertThat(specificValue.getName()).isEqualTo(DEF_NAME);
+        assertThat(specificValue.getDescription()).isEqualTo(DEF_DESCRIPTION);
+        assertThat(specificValue.getRegex()).isEqualTo(DEF_REGEX);
+    }
+
+    @Test
     public void shouldThrowExceptionForStaplerRequestAndJSONWithRegexMismatchingString() {
         // given
         String invalidInputValue = "000";

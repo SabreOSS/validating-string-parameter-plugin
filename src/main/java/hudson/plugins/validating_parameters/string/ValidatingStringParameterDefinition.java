@@ -23,6 +23,7 @@
  */
 package hudson.plugins.validating_parameters.string;
 
+import com.google.common.base.Strings;
 import hudson.Extension;
 import hudson.model.Failure;
 import hudson.model.ParameterDefinition;
@@ -34,6 +35,7 @@ import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.util.regex.Pattern;
 
@@ -92,10 +94,15 @@ public class ValidatingStringParameterDefinition extends ParameterDefinition {
         return new ValidatingStringParameterValue(getName(), defaultValue, getRegex(), getDescription());
     }
 
+    @CheckForNull
     @Override
     public ParameterValue createValue(StaplerRequest req, JSONObject jo) {
         ValidatingStringParameterValue value = req.bindJSON(ValidatingStringParameterValue.class, jo);
         String reqValue = value.getValue();
+
+        if (Strings.isNullOrEmpty(reqValue)) {
+            return getDefaultParameterValue();
+        }
 
         if (!Pattern.matches(regex, reqValue)) {
             throw new Failure(failedValidationMessage);
@@ -106,19 +113,21 @@ public class ValidatingStringParameterDefinition extends ParameterDefinition {
         return value;
     }
 
+    @CheckForNull
     @Override
     public ParameterValue createValue(StaplerRequest req) {
         String[] values = req.getParameterValues(getName());
-        
+
         if (values == null || values.length < 1) {
             return getDefaultParameterValue();
-        } else {
-            String reqValue = values[0];
-            if (!Pattern.matches(regex, reqValue)) {
-                throw new Failure(failedValidationMessage);
-            }
-            return new ValidatingStringParameterValue(getName(), reqValue, regex, getDescription());
         }
+
+        String reqValue = values[0];
+        if (!Pattern.matches(regex, reqValue)) {
+            throw new Failure(failedValidationMessage);
+        }
+
+        return new ValidatingStringParameterValue(getName(), reqValue, regex, getDescription());
     }
 
     @Extension

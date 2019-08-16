@@ -28,11 +28,15 @@ import hudson.Extension;
 import hudson.model.Failure;
 import hudson.model.ParameterValue;
 import hudson.model.PasswordParameterDefinition;
+import hudson.model.PasswordParameterValue;
 import hudson.plugins.validating_parameters.common.ValidatedParameterDescriptor;
 import hudson.plugins.validating_parameters.utils.JsEscapingUtils;
+import net.sf.json.JSONObject;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.StaplerRequest;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.util.regex.Pattern;
 
@@ -91,6 +95,7 @@ public class ValidatingPasswordParameterDefinition extends PasswordParameterDefi
         return new ValidatingPasswordParameterValue(getName(), defaultValue, getRegex(), getDescription());
     }
 
+    @CheckForNull
     @Override
     public ParameterValue createValue(String value) {
         if (Strings.isNullOrEmpty(value)) {
@@ -104,6 +109,25 @@ public class ValidatingPasswordParameterDefinition extends PasswordParameterDefi
         }
 
         return passwordValue;
+    }
+
+    @CheckForNull
+    @Override
+    public PasswordParameterValue createValue(StaplerRequest req, JSONObject jo) {
+        ValidatingPasswordParameterValue value = req.bindJSON(ValidatingPasswordParameterValue.class, jo);
+        String reqValue = value.getValue().getPlainText();
+
+        if (Strings.isNullOrEmpty(reqValue) || DEFAULT_VALUE.equals(reqValue)) {
+            return getDefaultParameterValue();
+        }
+
+        if (!Pattern.matches(regex, reqValue)) {
+            throw new Failure(failedValidationMessage);
+        }
+
+        value.setDescription(getDescription());
+        value.setRegex(regex);
+        return value;
     }
 
     @Extension
